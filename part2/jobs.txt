@@ -1,0 +1,61 @@
+Christopher Donnelly
+Introduction to Application security
+Professor Dean Christakos
+
+Assignment 3 - Part 2 - jobs.txt
+
+Migrations:
+
+For migrations I created a Kubernetes job, specified in the db/migrations/migrations.yaml file. This file makes use of
+Django's migrate commands:
+
+    command: ['python', 'manage.py', 'migrate']
+
+Calling this from our Kubernetes job will perform all migrations for the database, as shown in the logs of the job below:
+
+    (base) christopherdonnelly@Christophers-MacBook-Pro CS-GY-9163-Application-Security-Assignment-3 % kubectl logs django-migrations-zplk7
+    Operations to perform:
+    Apply all migrations: LegacySite, admin, auth, contenttypes, sessions
+    Running migrations:
+    Applying LegacySite.0001_initial... OK
+    Applying contenttypes.0001_initial... OK
+    Applying auth.0001_initial... OK
+    Applying admin.0001_initial... OK
+    Applying admin.0002_logentry_remove_auto_add... OK
+    Applying admin.0003_logentry_add_action_flag_choices... OK
+    Applying contenttypes.0002_remove_content_type_name... OK
+    Applying auth.0002_alter_permission_name_max_length... OK
+    Applying auth.0003_alter_user_email_max_length... OK
+    Applying auth.0004_alter_user_username_opts... OK
+    Applying auth.0005_alter_user_last_login_null... OK
+    Applying auth.0006_require_contenttypes_0002... OK
+    Applying auth.0007_alter_validators_add_error_messages... OK
+    Applying auth.0008_alter_user_username_max_length... OK
+    Applying auth.0009_alter_user_last_name_max_length... OK
+    Applying auth.0010_alter_group_name_max_length... OK
+    Applying auth.0011_update_proxy_permissions... OK
+    Applying auth.0012_alter_user_first_name_max_length... OK
+    Applying sessions.0001_initial... OK
+
+I included the required environment variables that are required for this operation within the
+job file as well. The command to run this job from the project root is the following:
+
+    kubectl apply -f "./db/seeding/seeding.yaml"
+
+Database Seeding:
+
+For seeding the database, I first created a simple .SH script that will execute the commands to load
+data from the csv files into the appropriate tables. This script can be found at db/seeding/seeding.sh.
+Then I created my Dockerfile to create an image based off of the default mysql docker image. It loads our
+seeding script, marks it as executable, and the runs the script. This image was then hosted on Docker Hub
+so that my Kubernetes job can pull down the image:
+
+    docker build -t donnelcf/seed-db:v5 db/seeding/
+    docker tag donnelcf/seed-db:v5 donnelcf/seed-db
+    docker push donnelcf/seed-db:v5
+
+When creating my Kubernetes job, I specified this image:
+
+    image: donnelcf/seed-db:v5
+
+I also included the required environment variables for me to be able to make changes to the correct database.

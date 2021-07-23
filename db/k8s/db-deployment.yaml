@@ -18,7 +18,9 @@ spec:
           image: nyuappsec/assign3-db:v0
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: thisisatestthing.
+              valueFrom:
+                secretKeyRef:
+                    name: mysql-root-pass
 
             - name: MYSQL_DB
               value: GiftcardSiteDB

@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrations
+spec:
+  template:
+    spec:
+      containers:
+      - name: django-migrations
+        image: nyuappsec/assign3:v0
+        command: ['python', 'manage.py', 'migrate']
+        env:
+          - name: APP_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                  name: app-secret-key
+                  key: app-secret-key
+                
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                  name: mysql-root-pass
+                  key: mysql-root-pass
+
+          - name: MYSQL_DB
+            value: GiftcardSiteDB
+
+          - name: MYSQL_HOST
+            value: mysql-service
+
+          - name: ALLOWED_HOSTS
+            value: "*,"
+
+          - name: ADMIN_UNAME
+            valueFrom:
+              secretKeyRef:
+                  name: admin-login-secrets
+                  key: username
+
+          - name: ADMIN_PASS
+            valueFrom:
+              secretKeyRef:
+                  name: admin-login-secrets
+                  key: password
+      restartPolicy: Never
+  backoffLimit: 5

@@ -21,6 +21,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                     name: mysql-root-pass
+                    key: mysql-root-pass
 
             - name: MYSQL_DATABASE
               value: GiftcardSiteDB
