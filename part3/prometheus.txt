@@ -1,0 +1,65 @@
+Christopher Donnelly
+Introduction to Application security
+Professor Dean Christakos
+
+Part 3: Prometheus
+
+We first use helm to install the Prometheus Community Kubernetes Helm Chart:
+    
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm install prometheus-community/prometheus --generate-name 
+
+We should see the pods running: kubectl get pods
+
+    prometheus-1627861909-alertmanager-c5cf69dd7-l94c5          2/2     Running     0          38m
+    prometheus-1627861909-kube-state-metrics-55549d6798-h5d88   1/1     Running     0          38m
+    prometheus-1627861909-node-exporter-54k8q                   1/1     Running     0          38m
+    prometheus-1627861909-pushgateway-54ff447cf8-zqtwr          1/1     Running     0          38m
+    prometheus-1627861909-server-5b87666b8-zmd62                2/2     Running     0          38m
+
+We first get the list of services running:
+    
+    minikube service list
+
+Once we get the server, we can edit the config map:
+    
+    kubectl edit cm prometheus-1627861909-server
+
+With the file open, we can add a new scrape job, to scrape `proxy-server:808`
+
+    # Please edit the object below. Lines beginning with a '#' will be ignored,
+    # and an empty file will abort the edit. If an error occurs while saving this file will be
+    # reopened with the relevant failures.
+    #
+    apiVersion: v1
+    data:
+    alerting_rules.yml: |
+        {}
+    alerts: |
+        {}
+    prometheus.yml: |
+        global:
+        evaluation_interval: 1m
+        scrape_interval: 1m
+        scrape_timeout: 10s
+        rule_files:
+        - /etc/config/recording_rules.yml
+        - /etc/config/alerting_rules.yml
+        - /etc/config/rules
+        - /etc/config/alerts
+        scrape_configs:
+        - job_name: prometheus
+        static_configs:
+        - targets:
+            - localhost:9090
+        - job_name: proxy-server
+        static_configs:
+        - targets:
+            - proxy-service:8080
+        .
+        .
+        .
+
+We can then start the service and query:
+    
+    minikube service prometheus-1627861909-server

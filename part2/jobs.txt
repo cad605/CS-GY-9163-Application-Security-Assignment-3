@@ -40,7 +40,7 @@ Calling this from our Kubernetes job will perform all migrations for the databas
 I included the required environment variables that are required for this operation within the
 job file as well. The command to run this job from the project root is the following:
 
-    kubectl apply -f "./db/seeding/seeding.yaml"
+    kubectl apply -f "./db/migrations/migrations.yaml"
 
 Database Seeding:
 
@@ -59,3 +59,5 @@ When creating my Kubernetes job, I specified this image:
     image: donnelcf/seed-db:v5
 
 I also included the required environment variables for me to be able to make changes to the correct database.
+
+    kubectl apply -f "./db/seeding/seeding.yaml"
